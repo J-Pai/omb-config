@@ -79,19 +79,28 @@ SCM_GIT_SHOW_MINIMAL_INFO=false
 PROMPT_DIRTRIM=0
 
 SCM_CT='city'
+SCM_CT_INFO=""
 SCM_CT_CHAR='G'
 
 function scm {
-    ct &> /dev/null
+    SCM_CT_INFO=($(ct 2>&1))
     IS_CT=$?
-    if [[ "$SCM_CHECK" = false ]]; then SCM=$SCM_NONE
-    elif [[ -f .git/HEAD ]]; then SCM=$SCM_GIT
-    elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then SCM=$SCM_GIT
-    elif [[ -d .hg ]]; then SCM=$SCM_HG
-    elif which hg &> /dev/null && [[ -n "$(hg root 2> /dev/null)" ]]; then SCM=$SCM_HG
-    elif [[ -d .svn ]]; then SCM=$SCM_SV
-    elif [[ $IS_CT == 0 ]]; then SCM=$SCM_CT
-    else SCM=$SCM_NONE
+    if [[ "$SCM_CHECK" = false ]]; then
+        SCM=$SCM_NONE
+    elif [[ -f .git/HEAD ]]; then
+        SCM=$SCM_GIT
+    elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
+        SCM=$SCM_GIT
+    elif [[ -d .hg ]]; then
+        SCM=$SCM_HG
+    elif which hg &> /dev/null && [[ -n "$(hg root 2> /dev/null)" ]]; then
+        SCM=$SCM_HG
+    elif [[ -d .svn ]]; then
+        SCM=$SCM_SV
+    elif [[ $IS_CT == 0 ]]; then
+        SCM=$SCM_CT
+    else
+        SCM=$SCM_NONE
     fi
 }
 
@@ -130,6 +139,7 @@ function ct_prompt_vars {
     SCM_BRANCH=""
     SCM_PREFIX=${CT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
     SCM_SUFFIX=${CT_THEME_PROMPT_SUFFIX:-$SCM_THEME_PROMPT_SUFFIX}
+    SCM_BRANCH=$(basename ${SCM_CT_INFO[2]})
 }
 
 function ct_prompt_info {
