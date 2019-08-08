@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Path to your oh-my-bash installation.
 export OSH=$HOME/.oh-my-bash
 
@@ -43,7 +45,7 @@ OSH_THEME="bobby"
 # Would you like to use another custom folder than $OSH/custom?
 # OSH_CUSTOM=/path/to/new-custom-folder
 
-THEME_CLOCK_FORMAT="%H:%M:%S"
+# THEME_CLOCK_FORMAT="%H:%M:%S"
 
 # Which completions would you like to load? (completions can be found in ~/.oh-my-bash/completions/*)
 # Custom completions may be added to ~/.oh-my-bash/custom/completions/
@@ -74,7 +76,66 @@ plugins=(
 
 source $OSH/oh-my-bash.sh
 SCM_GIT_SHOW_MINIMAL_INFO=false
+PROMPT_DIRTRIM=0
 
+SCM_CT='city'
+SCM_CT_CHAR='G'
+
+function scm {
+    ct &> /dev/null
+    IS_CT=$?
+    if [[ "$SCM_CHECK" = false ]]; then SCM=$SCM_NONE
+    elif [[ -f .git/HEAD ]]; then SCM=$SCM_GIT
+    elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then SCM=$SCM_GIT
+    elif [[ -d .hg ]]; then SCM=$SCM_HG
+    elif which hg &> /dev/null && [[ -n "$(hg root 2> /dev/null)" ]]; then SCM=$SCM_HG
+    elif [[ -d .svn ]]; then SCM=$SCM_SV
+    elif [[ $IS_CT == 0 ]]; then SCM=$SCM_CT
+    else SCM=$SCM_NONE
+    fi
+}
+
+function scm_prompt_char {
+    if [[ -z $SCM ]]; then scm; fi
+    if [[ $SCM == $SCM_GIT ]]; then SCM_CHAR=$SCM_GIT_CHAR
+    elif [[ $SCM == $SCM_HG ]]; then SCM_CHAR=$SCM_HG_CHAR
+    elif [[ $SCM == $SCM_SVN ]]; then SCM_CHAR=$SCM_SVN_CHAR
+    elif [[ $SCM == $SCM_CT ]]; then SCM_CHAR=$SCM_CT_CHAR
+    else SCM_CHAR=$SCM_NONE_CHAR
+    fi
+}
+
+function scm_prompt_info_common {
+    SCM_DIRTY=0
+    SCM_STATE=''
+
+    if [[ ${SCM} == ${SCM_GIT} ]]; then
+      if [[ ${SCM_GIT_SHOW_MINIMAL_INFO} == true ]]; then
+        # user requests minimal git status information
+        git_prompt_minimal_info
+      else
+        # more detailed git status
+        git_prompt_info
+      fi
+      return
+    fi
+
+    # TODO: consider adding minimal status information for hg and svn
+    [[ ${SCM} == ${SCM_HG} ]] && hg_prompt_info && return
+    [[ ${SCM} == ${SCM_SVN} ]] && svn_prompt_info && return
+    [[ ${SCM} == ${SCM_CT} ]] && ct_prompt_info && return
+}
+
+function ct_prompt_vars {
+    SCM_BRANCH=""
+    SCM_PREFIX=${CT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
+    SCM_SUFFIX=${CT_THEME_PROMPT_SUFFIX:-$SCM_THEME_PROMPT_SUFFIX}
+}
+
+function ct_prompt_info {
+    ct_prompt_vars
+    echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
+}
 # User configuration
 # export MANPATH="/usr/local/man:$MANPATH"
 
