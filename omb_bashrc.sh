@@ -52,9 +52,9 @@ OSH_THEME="bobby"
 # Example format: completions=(ssh git bundler gem pip pip3)
 # Add wisely, as too many completions slow down shell startup.
 completions=(
-  git
-  composer
-  ssh
+git
+composer
+ssh
 )
 
 # Which aliases would you like to load? (aliases can be found in ~/.oh-my-bash/aliases/*)
@@ -62,7 +62,7 @@ completions=(
 # Example format: aliases=(vagrant composer git-avh)
 # Add wisely, as too many aliases slow down shell startup.
 aliases=(
-  general
+general
 )
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-bash/plugins/*)
@@ -70,8 +70,8 @@ aliases=(
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  git
-  bashmarks
+git
+bashmarks
 )
 
 source $OSH/oh-my-bash.sh
@@ -83,68 +83,68 @@ SCM_CT_INFO=""
 SCM_CT_CHAR='G'
 
 function scm {
-    SCM_CT_INFO=($(ct 2>&1))
-    IS_CT=$?
-    if [[ "$SCM_CHECK" = false ]]; then
-        SCM=$SCM_NONE
-    elif [[ -f .git/HEAD ]]; then
-        SCM=$SCM_GIT
-    elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
-        SCM=$SCM_GIT
-    elif [[ -d .hg ]]; then
-        SCM=$SCM_HG
-    elif which hg &> /dev/null && [[ -n "$(hg root 2> /dev/null)" ]]; then
-        SCM=$SCM_HG
-    elif [[ -d .svn ]]; then
-        SCM=$SCM_SV
-    elif [[ $IS_CT == 0 ]]; then
-        SCM=$SCM_CT
-    else
-        SCM=$SCM_NONE
-    fi
+  SCM_CT_INFO=($(ct 2>&1))
+  IS_CT=$?
+  if [[ "$SCM_CHECK" = false ]]; then
+    SCM=$SCM_NONE
+  elif [[ -f .git/HEAD ]]; then
+    SCM=$SCM_GIT
+  elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
+    SCM=$SCM_GIT
+  elif [[ -d .hg ]]; then
+    SCM=$SCM_HG
+  elif which hg &> /dev/null && [[ -n "$(hg root 2> /dev/null)" ]]; then
+    SCM=$SCM_HG
+  elif [[ -d .svn ]]; then
+    SCM=$SCM_SV
+  elif [[ $IS_CT == 0 ]]; then
+    SCM=$SCM_CT
+  else
+    SCM=$SCM_NONE
+  fi
 }
 
 function scm_prompt_char {
-    if [[ -z $SCM ]]; then scm; fi
-    if [[ $SCM == $SCM_GIT ]]; then SCM_CHAR=$SCM_GIT_CHAR
-    elif [[ $SCM == $SCM_HG ]]; then SCM_CHAR=$SCM_HG_CHAR
-    elif [[ $SCM == $SCM_SVN ]]; then SCM_CHAR=$SCM_SVN_CHAR
-    elif [[ $SCM == $SCM_CT ]]; then SCM_CHAR=$SCM_CT_CHAR
-    else SCM_CHAR=$SCM_NONE_CHAR
-    fi
+  if [[ -z $SCM ]]; then scm; fi
+  if [[ $SCM == $SCM_GIT ]]; then SCM_CHAR=$SCM_GIT_CHAR
+  elif [[ $SCM == $SCM_HG ]]; then SCM_CHAR=$SCM_HG_CHAR
+  elif [[ $SCM == $SCM_SVN ]]; then SCM_CHAR=$SCM_SVN_CHAR
+  elif [[ $SCM == $SCM_CT ]]; then SCM_CHAR=$SCM_CT_CHAR
+  else SCM_CHAR=$SCM_NONE_CHAR
+  fi
 }
 
 function scm_prompt_info_common {
-    SCM_DIRTY=0
-    SCM_STATE=''
+  SCM_DIRTY=0
+  SCM_STATE=''
 
-    if [[ ${SCM} == ${SCM_GIT} ]]; then
-      if [[ ${SCM_GIT_SHOW_MINIMAL_INFO} == true ]]; then
-        # user requests minimal git status information
-        git_prompt_minimal_info
-      else
-        # more detailed git status
-        git_prompt_info
-      fi
-      return
+  if [[ ${SCM} == ${SCM_GIT} ]]; then
+    if [[ ${SCM_GIT_SHOW_MINIMAL_INFO} == true ]]; then
+      # user requests minimal git status information
+      git_prompt_minimal_info
+    else
+      # more detailed git status
+      git_prompt_info
     fi
+    return
+  fi
 
-    # TODO: consider adding minimal status information for hg and svn
-    [[ ${SCM} == ${SCM_HG} ]] && hg_prompt_info && return
-    [[ ${SCM} == ${SCM_SVN} ]] && svn_prompt_info && return
-    [[ ${SCM} == ${SCM_CT} ]] && ct_prompt_info && return
+  # TODO: consider adding minimal status information for hg and svn
+  [[ ${SCM} == ${SCM_HG} ]] && hg_prompt_info && return
+  [[ ${SCM} == ${SCM_SVN} ]] && svn_prompt_info && return
+  [[ ${SCM} == ${SCM_CT} ]] && ct_prompt_info && return
 }
 
 function ct_prompt_vars {
-    SCM_BRANCH=""
-    SCM_PREFIX=${CT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
-    SCM_SUFFIX=${CT_THEME_PROMPT_SUFFIX:-$SCM_THEME_PROMPT_SUFFIX}
-    SCM_BRANCH=$(basename ${SCM_CT_INFO[2]})
+  SCM_BRANCH=""
+  SCM_PREFIX=${CT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
+  SCM_SUFFIX=${CT_THEME_PROMPT_SUFFIX:-$SCM_THEME_PROMPT_SUFFIX}
+  SCM_BRANCH="$(basename ${SCM_CT_INFO[2]})"
 }
 
 function ct_prompt_info {
-    ct_prompt_vars
-    echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
+  ct_prompt_vars
+  echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
 }
 # User configuration
 # export MANPATH="/usr/local/man:$MANPATH"
