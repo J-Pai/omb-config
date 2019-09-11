@@ -79,12 +79,11 @@ SCM_GIT_SHOW_MINIMAL_INFO=false
 PROMPT_DIRTRIM=0
 
 SCM_CT='city'
-SCM_CT_INFO=""
+SCM_CT_INFO=''
 SCM_CT_CHAR='G'
 
 function scm {
-  SCM_CT_INFO=($(${CT} 2> /dev/null))
-  IS_CT=$?
+  local working_dir=`pwd`
   if [[ "$SCM_CHECK" = false ]]; then
     SCM=$SCM_NONE
   elif [[ -f .git/HEAD ]]; then
@@ -97,8 +96,10 @@ function scm {
     SCM=$SCM_HG
   elif [[ -d .svn ]]; then
     SCM=$SCM_SV
-  elif [[ $IS_CT == 0 ]]; then
+  elif [[ $working_dir == "/${GOOG}${USER}/"* ]]; then
     SCM=$SCM_CT
+    IFS=/ SCM_CT_INFO=(${working_dir})
+    unset IFS
   else
     SCM=$SCM_NONE
   fi
@@ -139,7 +140,7 @@ function ct_prompt_vars {
   local details=''
   SCM_STATE=${CT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
   SCM_BRANCH=""
-  SCM_BRANCH="$(basename ${SCM_CT_INFO[2]})"
+  SCM_BRANCH="${SCM_CT_INFO[5]}"
 
   local cl=($(${GF} 2> /dev/null))
   [[ "${cl}" != "" ]] && \
