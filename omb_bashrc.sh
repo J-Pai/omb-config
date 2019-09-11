@@ -83,7 +83,7 @@ SCM_CT_INFO=""
 SCM_CT_CHAR='G'
 
 function scm {
-  SCM_CT_INFO=($(ct 2>&1))
+  SCM_CT_INFO=($(${CT} 2> /dev/null))
   IS_CT=$?
   if [[ "$SCM_CHECK" = false ]]; then
     SCM=$SCM_NONE
@@ -136,10 +136,18 @@ function scm_prompt_info_common {
 }
 
 function ct_prompt_vars {
+  local details=''
+  SCM_STATE=${CT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
   SCM_BRANCH=""
+  SCM_BRANCH="$(basename ${SCM_CT_INFO[2]})"
+
+  local cl=($(${GF} 2> /dev/null))
+  [[ "${cl}" != "" ]] && \
+    SCM_BRANCH+=" cl/${cl[1]}" && \
+    SCM_STATE=${CT_THEME_PROMPT_DIRTY:-$SCM_THEME_PROMPT_DIRTY}
+
   SCM_PREFIX=${CT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
   SCM_SUFFIX=${CT_THEME_PROMPT_SUFFIX:-$SCM_THEME_PROMPT_SUFFIX}
-  SCM_BRANCH="$(basename ${SCM_CT_INFO[2]})"
 }
 
 function ct_prompt_info {
