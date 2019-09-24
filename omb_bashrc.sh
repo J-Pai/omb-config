@@ -79,13 +79,23 @@ SCM_GIT_SHOW_MINIMAL_INFO=false
 PROMPT_DIRTRIM=0
 
 SCM_CT='city'
-SCM_CT_INFO=''
+SCM_CT_CLIENT=''
+SCM_CT_CL=''
 SCM_CT_CHAR='G'
+
+function cl_num {
+  ${GF} -F'%change%' changes -s pending -c "$(${GF} -F'%clientName%' info)"
+}
 
 function scm {
   local working_dir=`pwd`
   if [[ "$SCM_CHECK" = false ]]; then
     SCM=$SCM_NONE
+  elif [[ $working_dir == "/${GOOG}${USER}/"* ]]; then
+    SCM=$SCM_CT
+    SCM_CT_CLIENT=$(${GF} -F'%clientName%' info)
+    SCM_CT_CL=$(${GF} -F'%change%' changes -s pending -c "${SCM_CT_CLIENT}")
+    unset IFS
   elif [[ -f .git/HEAD ]]; then
     SCM=$SCM_GIT
   elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
@@ -96,10 +106,6 @@ function scm {
     SCM=$SCM_HG
   elif [[ -d .svn ]]; then
     SCM=$SCM_SV
-  elif [[ $working_dir == "/${GOOG}${USER}/"* ]]; then
-    SCM=$SCM_CT
-    IFS=/ SCM_CT_INFO=(${working_dir})
-    unset IFS
   else
     SCM=$SCM_NONE
   fi
@@ -140,11 +146,11 @@ function ct_prompt_vars {
   local details=''
   SCM_STATE=${CT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
   SCM_BRANCH=""
-  SCM_BRANCH="${SCM_CT_INFO[5]}"
+  SCM_BRANCH="${SCM_CT_CLIENT}"
 
-  local cl=($(${GF} 2> /dev/null))
-  [[ "${cl}" != "" ]] && \
-    SCM_BRANCH+=" cl/${cl[1]}" && \
+  # local cl=$(cl_num)
+  [[ "${SCM_CT_CL}" != "" ]] && \
+    SCM_BRANCH+=" cl/${SCM_CT_CL}" && \
     SCM_STATE=${CT_THEME_PROMPT_DIRTY:-$SCM_THEME_PROMPT_DIRTY}
 
   SCM_PREFIX=${CT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
