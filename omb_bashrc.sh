@@ -86,18 +86,16 @@ SCM_CT_CHAR='G'
 
 function scm {
   local working_dir=`pwd`
-  if [[ "$SCM_CHECK" = false ]]; then
-    SCM=$SCM_NONE
-  elif [[ -f .git/HEAD ]]; then
+  if [[ -f .git/HEAD ]]; then
     SCM=$SCM_GIT
-  elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
-    SCM=$SCM_GIT
-  elif [[ -d .hg ]]; then
-    SCM=$SCM_HG
-  elif which hg &> /dev/null && [[ -n "$(hg root 2> /dev/null)" ]]; then
-    SCM=$SCM_HG
-  elif [[ -d .svn ]]; then
-    SCM=$SCM_SV
+  # elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
+  #   SCM=$SCM_GIT
+  # elif [[ -d .hg ]]; then
+  #   SCM=$SCM_HG
+  # elif which hg &> /dev/null && [[ -n "$(hg root 2> /dev/null)" ]]; then
+  #   SCM=$SCM_HG
+  # elif [[ -d .svn ]]; then
+  #   SCM=$SCM_SV
   elif [[ $working_dir == "${GOOG}${USER}/"* ]]; then
     SCM=$SCM_CT
     IFS="/" client=($working_dir)
