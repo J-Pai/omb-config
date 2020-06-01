@@ -97,14 +97,14 @@ function scm {
   #   SCM=$SCM_HG
   # elif [[ -d .svn ]]; then
   #   SCM=$SCM_SV
-  elif [[ $working_dir == "${GOOG}${USER}/"* ]]; then
-    SCM=$SCM_CT
-    IFS="/" client=($working_dir)
-    SCM_CT_CLIENT=${client[5]}
-    pending=$(${GF} -F'%change0%|%depotFile0%' pending)
-    IFS="|" cl_opened=($pending)
-    SCM_CT_CL=${cl_opened[0]}
-    SCM_CT_DIRTY=${cl_opened[1]}
+  # elif [[ $working_dir == "${GOOG}${USER}/"* ]]; then
+  #   SCM=$SCM_CT
+  #   IFS="/" client=($working_dir)
+  #   SCM_CT_CLIENT=${client[5]}
+  #   pending=$(${GF} -F'%change0%|%depotFile0%' pending)
+  #   IFS="|" cl_opened=($pending)
+  #   SCM_CT_CL=${cl_opened[0]}
+  #   SCM_CT_DIRTY=${cl_opened[1]}
   else
     SCM=$SCM_NONE
   fi
