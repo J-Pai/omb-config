@@ -37,12 +37,8 @@ function scm {
   elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
     SCM=$SCM_GIT
   elif [[ $working_dir == "${GOOG}${USER}/"* ]]; then
-    local cl="$(hg cls . -T{verbosename} 2> /dev/null)"
     SCM=$SCM_CT
     SCM_CT_CLIENT=$(pwd)
-    if [[ -n "$cl" ]]; then
-      SCM_CT_CL=$cl
-    fi
   else
     SCM=$SCM_NONE
   fi
@@ -77,10 +73,24 @@ function ct_prompt_vars {
   SCM_STATE=${CT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
   SCM_BRANCH_CLEANED="${SCM_CT_CLIENT#${GOOG}${USER}/}"
   SCM_BRANCH="${SCM_BRANCH_CLEANED%/google3*}"
+  # SCM_CT_CL="$(hg cls -T{verbosename} 2> /dev/null)"
+
+  PID_LIST=""
+
+  tmp=/tmp/${SCM_BRANCH}_fig.tmp
+  rm $tmp.*
+  hg cls -T{verbosename} 1>$tmp.name 2> /dev/null & pid=$!
+  hg status --rev . -T{status} 1>>$tmp.unstaged 2> /dev/null & pid=$! # unstaged
+  hg status --rev .^ -T{status} 1>>$tmp.staged 2> /dev/null & pid=$! # staged
+
+  wait $PID_LIST
+
+  SCM_CT_CL=$(<$tmp.name)
+
   if [[ "${SCM_CT_CL}" != "" ]]; then
     SCM_BRANCH+=" ${SCM_CT_CL}"
-    local untracked_unstaged_status_str=$(hg status --rev . -T{status})
-    local staged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "$(hg status --rev .^ -T{status})")
+    local untracked_unstaged_status_str=$(<$tmp.unstaged)
+    local staged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "$(<$tmp.staged)")
     local unstaged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "$untracked_unstaged_status_str")
     local untracked_count=$(awk -F"?" '{print NF-1}' <<< "$untracked_unstaged_status_str")
     local missing_count=$(awk -F"!" '{print NF-1}' <<< "$untracked_unstaged_status_str")
