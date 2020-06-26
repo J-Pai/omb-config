@@ -78,7 +78,7 @@ function ct_prompt_vars {
 
   tmp=/tmp/${SCM_BRANCH}_fig.tmp
   rm -f $tmp.*
-  hg cls -T{verbosename} 1>$tmp.name 2> /dev/null & pid=$!
+  hg cls . -T{verbosename} 1>$tmp.name 2> /dev/null & pid=$!
   PID_LIST+=" $pid"
   hg status --rev . -T{status} 1>>$tmp.unstaged 2> /dev/null & pid=$! # unstaged
   PID_LIST+=" $pid"
