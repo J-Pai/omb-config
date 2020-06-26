@@ -73,15 +73,17 @@ function ct_prompt_vars {
   SCM_STATE=${CT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
   SCM_BRANCH_CLEANED="${SCM_CT_CLIENT#${GOOG}${USER}/}"
   SCM_BRANCH="${SCM_BRANCH_CLEANED%/google3*}"
-  # SCM_CT_CL="$(hg cls -T{verbosename} 2> /dev/null)"
 
   PID_LIST=""
 
   tmp=/tmp/${SCM_BRANCH}_fig.tmp
-  rm $tmp.*
-  hg cls -T{verbosename} 1>$tmp.name 2> /dev/null & pid=$!
-  hg status --rev . -T{status} 1>>$tmp.unstaged 2> /dev/null & pid=$! # unstaged
-  hg status --rev .^ -T{status} 1>>$tmp.staged 2> /dev/null & pid=$! # staged
+  rm -f $tmp.*
+  time hg cls -T{verbosename} 1>$tmp.name 2> /dev/null & pid=$!
+  PID_LIST+=" $pid"
+  time hg status --rev . -T{status} 1>>$tmp.unstaged 2> /dev/null & pid=$! # unstaged
+  PID_LIST+=" $pid"
+  time hg status --rev .^ -T{status} 1>>$tmp.staged 2> /dev/null & pid=$! # staged
+  PID_LIST+=" $pid"
 
   wait $PID_LIST
 
