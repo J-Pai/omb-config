@@ -78,29 +78,26 @@ function ct_prompt_vars {
 
   tmp=/tmp/${SCM_BRANCH}_fig.tmp
   rm -f $tmp.*
-  hg cls . -T{verbosename} 1>$tmp.name 2> /dev/null & pid=$!
-  PID_LIST+=" $pid"
-  hg status --rev . -T{status} 1>>$tmp.unstaged 2> /dev/null & pid=$! # unstaged
-  PID_LIST+=" $pid"
-  hg status --rev .^ -T{status} 1>>$tmp.staged 2> /dev/null & pid=$! # staged
-  PID_LIST+=" $pid"
 
-  wait $PID_LIST
+  hg cls . -T{verbosename} 1>$tmp.name 2> /dev/null &
+  hg status --rev . -T{status} 1>>$tmp.unstaged 2> /dev/null & # unstaged
+  hg status --rev .^ -T{status} 1>>$tmp.staged 2> /dev/null & # staged
+  wait
 
   SCM_CT_CL=$(<$tmp.name)
 
-  if [[ "${SCM_CT_CL}" != "" ]]; then
-    SCM_BRANCH+=" ${SCM_CT_CL}"
-    local untracked_unstaged_status_str=$(<$tmp.unstaged)
-    local staged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "$(<$tmp.staged)")
-    local unstaged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "$untracked_unstaged_status_str")
-    local untracked_count=$(awk -F"?" '{print NF-1}' <<< "$untracked_unstaged_status_str")
-    local missing_count=$(awk -F"!" '{print NF-1}' <<< "$untracked_unstaged_status_str")
-    [[ "${staged_count}" -gt 0 ]] && details+=" ${SCM_GIT_STAGED_CHAR}${staged_count}" && SCM_DIRTY=4
-    [[ "${unstaged_count}" -gt 0 ]] && details+=" ${SCM_GIT_UNSTAGED_CHAR}${unstaged_count}" && SCM_DIRTY=3
-    [[ "${untracked_count}" -gt 0 ]] && details+=" ${SCM_GIT_UNTRACKED_CHAR}${untracked_count}" && SCM_DIRTY=2
-    [[ "${missing_count}" -gt 0 ]] && details+=" !:${missing_count}" && SCM_DIRTY=1
-  fi
+  [ -z "${SCM_CT_CL}" ] && SCM_CT_CL="no-cl"
+
+  SCM_BRANCH+=" ${SCM_CT_CL}"
+  local untracked_unstaged_status_str=$(<$tmp.unstaged)
+  local staged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "$(<$tmp.staged)")
+  local unstaged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "${untracked_unstaged_status_str}")
+  local untracked_count=$(awk -F"?" '{print NF-1}' <<< "${untracked_unstaged_status_str}")
+  local missing_count=$(awk -F"!" '{print NF-1}' <<< "${untracked_unstaged_status_str}")
+  [[ "${staged_count}" -gt 0 ]] && details+=" ${SCM_GIT_STAGED_CHAR}${staged_count}" && SCM_DIRTY=4
+  [[ "${unstaged_count}" -gt 0 ]] && details+=" ${SCM_GIT_UNSTAGED_CHAR}${unstaged_count}" && SCM_DIRTY=3
+  [[ "${untracked_count}" -gt 0 ]] && details+=" ${SCM_GIT_UNTRACKED_CHAR}${untracked_count}" && SCM_DIRTY=2
+  [[ "${missing_count}" -gt 0 ]] && details+=" !:${missing_count}" && SCM_DIRTY=1
 
   SCM_BRANCH+=${details}
 
