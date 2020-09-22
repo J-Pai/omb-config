@@ -31,14 +31,14 @@ SCM_CT_DIRTY=''
 SCM_CT_CHAR='G'
 
 function scm {
-  local working_dir=`pwd`
+  local working_dir=`pwd -P`
   if [[ -f .git/HEAD ]]; then
     SCM=$SCM_GIT
   elif which git &> /dev/null && [[ -n "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]]; then
     SCM=$SCM_GIT
-  elif [[ $working_dir == "${GOOG}${USER}/"* ]]; then
+  elif [[ -d ${working_dir%%/google3*}/.hg ]]; then
     SCM=$SCM_CT
-    SCM_CT_CLIENT=$(pwd)
+    SCM_CT_CLIENT=$(pwd -P)
   else
     SCM=$SCM_NONE
   fi
@@ -71,8 +71,7 @@ function scm_prompt_info_common {
 function ct_prompt_vars {
   local details=''
   SCM_STATE=${CT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
-  SCM_BRANCH_CLEANED="${SCM_CT_CLIENT#${GOOG}${USER}/}"
-  SCM_BRANCH="${SCM_BRANCH_CLEANED%/google3*}"
+  SCM_BRANCH="$(get_fig_client_name)"
 
   PID_LIST=""
 
@@ -80,25 +79,41 @@ function ct_prompt_vars {
   rm -f $tmp.*
 
   if [ -z "${STOP_CT_CHECKS}" ]; then
-    chg cls . -T{verbosename} 1>$tmp.name 2> /dev/null &
-    chg status --rev . -T{status} 1>>$tmp.unstaged 2> /dev/null & # unstaged
-    chg status --rev .^ -T{status} 1>>$tmp.staged 2> /dev/null & # staged
-    wait
+    declare -a figstatus
+    while IFS=$'\n' read -r value; do
+      figstatus+=("$value")
+    done <<< "$( fig_status )"
 
-    SCM_CT_CL=$(<$tmp.name)
+    modified=${figstatus[0]}
+    added=${figstatus[1]}
+    deleted=${figstatus[2]}
+    unknown=${figstatus[3]}
+    unexported=${figstatus[4]}
+    obsolete=${figstatus[5]}
+    cl=${figstatus[6]}
+    description=${figstatus[7]}
+    branch=${figstatus[8]}
+    if [ -z "$branch" ]; then
+      branch="cl/$cl"
+    fi
+    changename=${figstatus[12]}
+    if [ -z "$changename" ]; then
+      changename="$branch"
+    fi
+    has_shelve=""
+    # POSIX-compatible way to check whether shelved-directory is non-empty.
+    shelve_dir="$( get_fig_client_root )/.hg/shelved/"
+    if [ -d "$shelve_dir" ] && /bin/ls -1qA "$shelve_dir" | grep -q .; then
+      has_shelve="!"
+    fi
+    short=${figstatus[13]}
 
-    [ -z "${SCM_CT_CL}" ] && SCM_CT_CL="no-cl"
-
-    SCM_BRANCH+=" ${SCM_CT_CL}"
-    local untracked_unstaged_status_str=$(<$tmp.unstaged)
-    local staged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "$(<$tmp.staged)")
-    local unstaged_count=$(awk -F"(M|A|R)" '{print NF-1}' <<< "${untracked_unstaged_status_str}")
-    local untracked_count=$(awk -F"?" '{print NF-1}' <<< "${untracked_unstaged_status_str}")
-    local missing_count=$(awk -F"!" '{print NF-1}' <<< "${untracked_unstaged_status_str}")
-    [[ "${staged_count}" -gt 0 ]] && details+=" ${SCM_GIT_STAGED_CHAR}${staged_count}" && SCM_DIRTY=4
-    [[ "${unstaged_count}" -gt 0 ]] && details+=" ${SCM_GIT_UNSTAGED_CHAR}${unstaged_count}" && SCM_DIRTY=3
-    [[ "${untracked_count}" -gt 0 ]] && details+=" ${SCM_GIT_UNTRACKED_CHAR}${untracked_count}" && SCM_DIRTY=2
-    [[ "${missing_count}" -gt 0 ]] && details+=" !:${missing_count}" && SCM_DIRTY=1
+    SCM_BRANCH+=" cl/$branch"
+    [ ! -z "$modified" ] && details+=" $modified" && SCM_DIRTY=5
+    [ ! -z "$added" ] && details+=" $added" && SCM_DIRTY=4
+    [ ! -z "$deleted" ] && details+=" $deleted" && SCM_DIRTY=3
+    [ ! -z "$unknown" ] && details+=" $unknown" && SCM_DIRTY=2
+    [ ! -z "$unexported" ] && details+=" $unexported" && SCM_DIRTY=1
   fi
 
   SCM_BRANCH+=${details}
