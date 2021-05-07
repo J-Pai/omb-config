@@ -30,6 +30,12 @@ SCM_CT_CL=''
 SCM_CT_DIRTY=''
 SCM_CT_CHAR='G'
 
+SCM_CT_G4='city-g4'
+SCM_CT_G4_CLIENT=''
+SCM_CT_G4_CL=''
+SCM_CT_G4_DIRTY=''
+SCM_CT_G4_CHAR='G-g4'
+
 function scm {
   local working_dir=`pwd -P`
   if [[ -f .git/HEAD ]]; then
@@ -38,6 +44,9 @@ function scm {
     SCM=$SCM_GIT
   elif [[ -d ${working_dir%%/google3*}/.hg ]]; then
     SCM=$SCM_CT
+    SCM_CT_CLIENT=$(pwd -P)
+  elif [[ ${working_dir} =~ /google3/* ]]; then
+    SCM=$SCM_CT_G4
     SCM_CT_CLIENT=$(pwd -P)
   else
     SCM=$SCM_NONE
@@ -48,6 +57,7 @@ function scm_prompt_char {
   if [[ -z $SCM ]]; then scm; fi
   if [[ $SCM == $SCM_GIT ]]; then SCM_CHAR=$SCM_GIT_CHAR
   elif [[ $SCM == $SCM_CT ]]; then SCM_CHAR=$SCM_CT_CHAR
+  elif [[ $SCM == $SCM_CT_G4 ]]; then SCM_CHAR=$SCM_CT_G4_CHAR
   else SCM_CHAR=$SCM_NONE_CHAR
   fi
 }
@@ -66,6 +76,7 @@ function scm_prompt_info_common {
   fi
   [[ ${SCM} == ${SCM_HG} ]] && hg_prompt_info && return
   [[ ${SCM} == ${SCM_CT} ]] && ct_prompt_info && return
+  [[ ${SCM} == ${SCM_CT_G4} ]] && ct_g4_prompt_info && return
 }
 
 function ct_prompt_vars {
@@ -124,5 +135,17 @@ function ct_prompt_vars {
 
 function ct_prompt_info {
   ct_prompt_vars
+  echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
+}
+
+function ct_g4_prompt_vars {
+  SCM_STATE=${CT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
+  SCM_BRANCH="$(get_fig_client_name)"
+  SCM_PREFIX=${CT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
+  SCM_SUFFIX=${CT_THEME_PROMPT_SUFFIX:-$SCM_THEME_PROMPT_SUFFIX}
+}
+
+function ct_g4_prompt_info {
+  ct_g4_prompt_vars
   echo -e "${SCM_PREFIX}${SCM_BRANCH}${SCM_STATE}${SCM_SUFFIX}"
 }
