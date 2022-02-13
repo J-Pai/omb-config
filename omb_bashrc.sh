@@ -3,7 +3,7 @@
 # Path to your oh-my-bash installation.
 export OSH=$HOME/.oh-my-bash
 
-OSH_THEME="doubletime_multiline"
+OSH_THEME="font"
 
 completions=(
 git
