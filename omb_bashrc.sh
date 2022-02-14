@@ -47,7 +47,7 @@ function scm {
     SCM_CT_CLIENT=$(pwd -P)
   elif [[ ${working_dir} =~ /google3/* ]]; then
     SCM=$SCM_CT_G4
-    SCM_CT_CLIENT=$(pwd -P)
+    SCM_CT_G4_CLIENT=$(pwd -P)
   else
     SCM=$SCM_NONE
   fi
