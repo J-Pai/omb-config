@@ -3,6 +3,8 @@
 # Path to your oh-my-bash installation.
 export OSH=$HOME/.oh-my-bash
 
+shopt -u direxpand
+
 OSH_THEME="doubletime_multiline"
 
 completions=(
